@@ -127,7 +127,7 @@ void test_LED()
 void test_servos()
 {
 	int i =0;
-	for(i=0;i<=255;i++)
+	for(i=0;i<=254;i++)
 	{
 		update_super_servo(0,0,0,i);
 		delay_cycles_ms(20);

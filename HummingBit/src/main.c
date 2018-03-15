@@ -55,6 +55,7 @@ volatile bool transfer_complete_spi_slave = false;
 
 volatile uint8_t serial_timeout_count = 0;
 volatile bool serial_timeout = false;
+volatile bool transcation_start = false;
 volatile uint8_t count_broadcast = 0;
 
 #define SPI_DATA_LENGTH 20
@@ -93,9 +94,14 @@ int main (void)
 	/* Insert application code here, after the board has been initialized. */
 	while(1)
 	{
-		
+		port_pin_set_output_level(PIN_PA27,true);
 		sensor_check();
+		port_pin_set_output_level(PIN_PA27,false);
 		spi_main_loop();
+		//delay_cycles_us(1);
+		//delay_cycles_us(1);
+
+
 		//test_ORB();
 		 //load_input();
 		 //test_LED();

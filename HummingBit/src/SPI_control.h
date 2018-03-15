@@ -53,11 +53,16 @@
 
 #define SPI_LENGTH    0x04
 
+
+
 void spi_main_loop();
 
 extern  volatile uint8_t received_value[20];
 extern  volatile uint8_t transmit_value[20];
 
 extern volatile uint8_t sensor_outputs[4];
+extern volatile bool transcation_start;
+extern volatile bool serial_timeout;
+extern volatile uint8_t serial_timeout_count;
 
 #endif /* SPI_CONTROL_H_ */

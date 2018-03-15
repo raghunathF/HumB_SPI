@@ -14,6 +14,20 @@
 #include "sensor_control.h"
 #include "super_servo_control.h"
 
+void check_timeout()
+{
+	if(transcation_start == true)
+	{
+		if(serial_timeout == true)
+		{
+			serial_timeout_count = 0;
+			serial_timeout = false;
+			transcation_start = false;
+			spi_transceive_buffer_job(&spi_slave_instance, sensor_outputs, received_value,SPI_LENGTH);
+		}
+	}
+	
+}
 
 
 void spi_main_loop()
@@ -53,9 +67,11 @@ void spi_main_loop()
 		delay_cycles_ms(100);
 	}
 	*/
-	
+	check_timeout();
 	if(transfer_complete_spi_slave == true)
 	{
+		
+		//port_pin_set_output_level(PIN_PA27,true);
 		/*
 		buffer_storage[count_buffer] = received_value[0]; 
 		count_buffer++;
@@ -71,26 +87,13 @@ void spi_main_loop()
 		if(rw == WRITE_SPI)
 		{
 			
-			
-			
 			switch(mode)
 			{
 				case LED1_S:
-					
 					update_LEDS_single(LED1_NO,received_value[1]);
 					break;
-				case LED2_S:
+				case LED4_S:
 					update_LEDS_single(LED2_NO,received_value[1]);
-					/*
-					if(received_value > 0)
-					{
-						port_pin_set_output_level(PIN_PA08, false);
-					}
-					else
-					{
-						port_pin_set_output_level(PIN_PA08, true);
-					}
-					*/
 					break;
 				
 				case RGB1_S:
@@ -120,17 +123,19 @@ void spi_main_loop()
 					break;
 					
 				case SET_ALL:
-					
 					update_ORB(received_value[1],received_value[2] ,received_value[3] ,received_value[4] ,received_value[5] ,received_value[6]  );
 					update_LEDS(received_value[7],received_value[8]);
 					update_super_servo(received_value[11] , received_value[12] , received_value[13], received_value[14]);
 					break;
-					
+				
+				/*
+				case DEVICE_VERSION:
+					update_device();
+				*/	
 				case STOP_ALL:
 					switch_off_LEDS();
 					switch_off_ORB();
 					break;
-				
 				
 				default:
 					break;
@@ -143,6 +148,7 @@ void spi_main_loop()
 		}
 		transfer_complete_spi_slave = false;
 		error_code = spi_transceive_buffer_job(&spi_slave_instance, sensor_outputs, received_value,SPI_LENGTH);
+		serial_timeout = false;
 			
 	}
 	

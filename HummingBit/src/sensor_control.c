@@ -28,7 +28,9 @@ void read_all_sensors()
 	uint8_t i =0;
 	for(i= 0; i< NO_SENSORS; i++)
 	{
+		//port_pin_set_output_level(PIN_PA27,true);
 		temp_sensor_outputs[i] = adc_start_read_result(sensor_analog_inputs[i]);
+		//port_pin_set_output_level(PIN_PA27,false);
 		sensor_outputs[i]      = temp_sensor_outputs[i] ;
 	}
 	/* Debug

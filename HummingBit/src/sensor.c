@@ -17,8 +17,9 @@ void configure_adc()
 	adc_get_config_defaults(&conf_adc);
 	adc_result = malloc(sizeof(uint16_t));
 	//conf_adc.clock_source = GCLK_GENERATOR_1;
+	
 	conf_adc.reference			= ADC_REFCTRL_REFSEL_INTVCC0;
-	conf_adc.clock_prescaler	= ADC_CLOCK_PRESCALER_DIV512;
+	conf_adc.clock_prescaler	= ADC_CLOCK_PRESCALER_DIV4;
 	conf_adc.positive_input		= 6;
 	conf_adc.negative_input		= ADC_NEGATIVE_INPUT_GND;
 	conf_adc.resolution			= ADC_RESOLUTION_8BIT;
@@ -35,10 +36,12 @@ uint16_t adc_start_read_result(const enum adc_positive_input analogPin)
 {
 	
 	uint16_t temp = 0;
+	
 	adc_set_positive_input(&adc_instance, analogPin );
 	adc_start_conversion(&adc_instance);
+	//port_pin_set_output_level(PIN_PA27,true);
 	while((adc_get_status(&adc_instance) & ADC_STATUS_RESULT_READY) != 1);
-	
+	//port_pin_set_output_level(PIN_PA27,false);
 	adc_read(&adc_instance, adc_result);
 	temp = *adc_result;
 

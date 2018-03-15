@@ -157,6 +157,7 @@ void LED_init_array()
 void tc_callback_LED_OF(struct tc_module *const module_inst)
 {
 	uint8_t compare_value=0;
+	static bool led_disable_flag = false;
 	serial_timeout_count++;
 	count_broadcast++;
 	if(serial_timeout_count > MAX_SERIAL_TIMEOUT)
@@ -166,13 +167,17 @@ void tc_callback_LED_OF(struct tc_module *const module_inst)
 	}
 	
 	LEDS_off();
-	//Clear interrupts
-	//tc_clear_interrupts(&tc_instance);
 	
 	if(update_compare_led_array == true)
 	{
-		tc_enable_callback(&led_tc_instance, TC_CALLBACK_CC_CHANNEL0);
+		
 		LED_transfer_temp();
+		if(led_disable_flag == true)
+		{
+			tc_enable_callback(&led_tc_instance, TC_CALLBACK_CC_CHANNEL0);
+			tc_clear_status(&led_tc_instance,0x00000011);
+			led_disable_flag = false;
+		}
 		update_compare_led_array = false;
 	}
 	compare_led_array_ID = 0;
@@ -185,9 +190,10 @@ void tc_callback_LED_OF(struct tc_module *const module_inst)
 	}
 	else
 	{
+		led_disable_flag = true;
 		tc_disable_callback(&led_tc_instance, TC_CALLBACK_CC_CHANNEL0);
 	}
-	//tc_set_inital_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, 0);
+	
 }
 
 void tc_callback_LED_PWM(struct tc_module *const module_inst)
@@ -220,19 +226,13 @@ void tc_callback_LED_PWM(struct tc_module *const module_inst)
 			else
 			{
 				tc_set_count_value(module_inst, compare_value_last);
-				tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, 0);
 			}
-		}
-		else
-		{
-			tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, 0);
 		}
 		
 	}
 	else
 	{
 		first_time = false;
-		tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, 0);
 	}
 }
 

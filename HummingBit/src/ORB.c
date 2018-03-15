@@ -125,6 +125,7 @@ void tc_callback_OF(struct tc_module *const module_inst)
 {
 	uint8_t compare_value=0;
 	static bool int_enable = false;
+	static bool led_disable_flag = false;
 	ORB_leds_off();
 	//Clear interrupts
 	//tc_clear_interrupts(&tc_instance);
@@ -135,6 +136,12 @@ void tc_callback_OF(struct tc_module *const module_inst)
 		if(int_enable == true)
 		{
 			int_enable = false;
+			if(led_disable_flag == true)
+			{
+				tc_enable_callback(&orb_tc_instance, TC_CALLBACK_CC_CHANNEL0);
+				tc_clear_status(&orb_tc_instance,0x00000011);
+				led_disable_flag = false;
+			}
 			tc_enable_callback(&orb_tc_instance, TC_CALLBACK_CC_CHANNEL0);
 		}
 		transfer_temp();
@@ -146,7 +153,7 @@ void tc_callback_OF(struct tc_module *const module_inst)
 	compare_value = compare_array[0];
 	if(compare_value != 255)
 	{
-		
+		led_disable_flag = true;
 		tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, compare_value);
 	}
 	else
@@ -187,19 +194,15 @@ void tc_callback_PWM(struct tc_module *const module_inst)
 			else
 			{
 				tc_set_count_value(module_inst, compare_value_last);
-				tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, 0);
 			}
 		}
-		else
-		{
-			tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, 0);
-		}
+		
 		
 	}
 	else
 	{
 		first_time = false;
-		tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, 0);
+		
 	}
 }
 

@@ -25,6 +25,7 @@ void update_LEDS(uint8_t led1, uint8_t led2)
 	increasing_LED_sort_tag();
 	LED_transfer_temp();
 	update_compare_led_array = true;
+
 }
 
 void update_LEDS_single(uint8_t port_no, uint8_t led)
@@ -53,8 +54,8 @@ void update_LEDS_single(uint8_t port_no, uint8_t led)
 
 void switch_off_LEDS()
 {
-	temp_compare_led_array_2[0] = 10; //Led1
-	temp_compare_led_array_2[1] = 80; //Led2
+	temp_compare_led_array_2[0] = 255; //Led1
+	temp_compare_led_array_2[1] = 255; //Led2
 	initializing_LED_pin_array();
 	increasing_LED_sort_tag();
 	LED_transfer_temp();

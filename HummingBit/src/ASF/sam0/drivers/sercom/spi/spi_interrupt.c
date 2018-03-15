@@ -73,8 +73,14 @@ uint16_t dummy_write;
 #define LENGTH_SET_ALL_COMMAND	19 
 #define PRELOAD_LENGTH			0x02
 #define INITIAL_LENGTH			0x04
+#define DEVICE_VERSION			0x8C
+#define DEVICE_ID_HARDWARE      0x11
+#define DEVICE_ID_FIRMWARE      0x11
 
 extern volatile uint8_t sensor_outputs[4];
+extern volatile bool transcation_start;
+extern volatile bool serial_timeout;
+extern volatile uint8_t serial_timeout_count;
 
 static void _spi_transceive_buffer(
 		struct spi_module *const module,
@@ -150,6 +156,7 @@ static void _spi_write_buffer(
 
 	if (module->receiver_enabled) {
 		/* Enable the Data Register Empty and RX Complete interrupt */
+		//hw->INTFLAG.reg  = SPI_INTERRUPT_FLAG_RX_COMPLETE | SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY;
 		hw->INTENSET.reg = (SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY |
 				SPI_INTERRUPT_FLAG_RX_COMPLETE);
 	} else {
@@ -660,16 +667,14 @@ void _spi_interrupt_handler(
 				port_pin_set_output_level(PIN_PA09,true);
 			}
 			*/
-			
+			//port_pin_toggle_output_level(PIN_PA08, false);
+			//delay_cycles_us(3);
+			//port_pin_set_output_level(PIN_PA08,true);
 			
 		     //spi_hw->DATA.reg = sensor_outputs[0] & SERCOM_SPI_DATA_MASK;
 			if (module->remaining_tx_buffer_length == 0) 
 			{
-				/*
-				port_pin_set_output_level(PIN_PA08, false);
-				delay_cycles_us(3);
-				port_pin_set_output_level(PIN_PA08,true);
-				*/
+				
 				/*
 				port_pin_set_output_level(PIN_PA09, false);
 				delay_cycles_us(3);
@@ -738,14 +743,20 @@ void _spi_interrupt_handler(
 				*/
 				
 				_spi_read(module);
+				//port_pin_set_output_level(PIN_PA09, false);
+				//delay_cycles_us(3);
+				//port_pin_set_output_level(PIN_PA09,true);
 				
 				buffer_length++;
 				if(buffer_length == 1)
-				{
+				{ 
+					transcation_start = true;
+					serial_timeout = false;
+					serial_timeout_count = 0 ; 
 					//Check if the command is set all 
 					if ((*(module->rx_buffer_ptr-1) == WR_SPI_INT_SET_ALL || *(module->rx_buffer_ptr-1) == WR_SPI_INT_RECEIVE_ALL)) 
 					{
-						module->remaining_tx_buffer_length =   LENGTH_SET_ALL_COMMAND - (INITIAL_LENGTH - module->remaining_tx_buffer_length);
+						module->remaining_tx_buffer_length =  LENGTH_SET_ALL_COMMAND - (INITIAL_LENGTH - module->remaining_tx_buffer_length);
 						module->remaining_rx_buffer_length =  LENGTH_SET_ALL_COMMAND - (INITIAL_LENGTH - module->remaining_rx_buffer_length);
 						/*
 						//*(module->tx_buffer_ptr) = sensor_outputs[*(module->rx_buffer_ptr-1)&MASK_MODE_INT];
@@ -756,6 +767,11 @@ void _spi_interrupt_handler(
 						 delay_cycles_us(3);
 						 port_pin_set_output_level(PIN_PA08,true);
 						 */
+					}
+					else if(*(module->rx_buffer_ptr-1) == DEVICE_VERSION)
+					{
+						*(module->tx_buffer_ptr)      =	DEVICE_ID_HARDWARE ;	
+						*(module->tx_buffer_ptr + 1)  = DEVICE_ID_FIRMWARE ;
 					}
 				}
 				
@@ -793,15 +809,13 @@ void _spi_interrupt_handler(
 	if (interrupt_status & SPI_INTERRUPT_FLAG_TX_COMPLETE) {
 #  if CONF_SPI_SLAVE_ENABLE == true
 		if (module->mode == SPI_MODE_SLAVE) {
+			
+			
 			/* Transaction ended by master */
-
 			/* Disable interrupts */
 			
-			/*
-			port_pin_set_output_level(PIN_PA08, false);
-			delay_cycles_us(3);
-			port_pin_set_output_level(PIN_PA08,true);
-			*/
+			
+			
 			/*
 			spi_hw->INTENCLR.reg =
 					SPI_INTERRUPT_FLAG_TX_COMPLETE |

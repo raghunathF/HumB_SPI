@@ -14,7 +14,7 @@ void configure_spi_slave(void)
 	struct spi_config config_spi_slave;
 	/* Configure, initialize and enable SERCOM SPI module */
 	spi_get_config_defaults(&config_spi_slave);
-	config_spi_slave.transfer_mode = SPI_TRANSFER_MODE_3;
+	config_spi_slave.transfer_mode = SPI_TRANSFER_MODE_0;
 	config_spi_slave.mode = SPI_MODE_SLAVE;
 	config_spi_slave.mode_specific.slave.preload_enable = true;
 	config_spi_slave.mode_specific.slave.frame_format = SPI_FRAME_FORMAT_SPI_FRAME;
@@ -31,6 +31,7 @@ void configure_spi_slave(void)
 static void spi_slave_callback(struct spi_module *const module)
 {
 	transfer_complete_spi_slave = true;
+	//port_pin_set_output_level(PIN_PA27, false);
 	//spi_transceive_buffer_job(&spi_slave_instance, transmit_value, received_value,SPI_LENGTH);
 }
 
