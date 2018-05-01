@@ -10,10 +10,6 @@ src\SPI_control.c
 
 src\SPI_slave.c
 
-src\UART.c
-
-src\UART_control.c
-
 src\ASF\common2\services\delay\sam0\systick_counter.c
 
 src\ASF\sam0\drivers\adc\adc_sam_d_r_h\adc.c
@@ -23,8 +19,6 @@ src\ASF\sam0\drivers\adc\adc_sam_d_r_h\adc_callback.c
 src\ASF\sam0\drivers\extint\extint_sam_d_r_h\extint.c
 
 src\ASF\sam0\drivers\sercom\sercom.c
-
-src\LED_control.c
 
 src\ORB_control.c
 
@@ -55,8 +49,6 @@ src\ASF\sam0\drivers\sercom\sercom_interrupt.c
 src\ASF\sam0\drivers\extint\extint_callback.c
 
 src\ASF\sam0\drivers\port\port.c
-
-src\LED.c
 
 src\ORB.c
 

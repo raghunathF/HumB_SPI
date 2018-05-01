@@ -117,14 +117,11 @@ C_SRCS +=  \
 ../src/ASF/sam0/drivers/sercom/spi/spi_interrupt.c \
 ../src/SPI_control.c \
 ../src/SPI_slave.c \
-../src/UART.c \
-../src/UART_control.c \
 ../src/ASF/common2/services/delay/sam0/systick_counter.c \
 ../src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc.c \
 ../src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc_callback.c \
 ../src/ASF/sam0/drivers/extint/extint_sam_d_r_h/extint.c \
 ../src/ASF/sam0/drivers/sercom/sercom.c \
-../src/LED_control.c \
 ../src/ORB_control.c \
 ../src/sensor_control.c \
 ../src/sensor.c \
@@ -140,7 +137,6 @@ C_SRCS +=  \
 ../src/ASF/sam0/drivers/sercom/sercom_interrupt.c \
 ../src/ASF/sam0/drivers/extint/extint_callback.c \
 ../src/ASF/sam0/drivers/port/port.c \
-../src/LED.c \
 ../src/ORB.c \
 ../src/ASF/common2/boards/user_board/init.c \
 ../src/ASF/common/utils/interrupt/interrupt_sam_nvic.c \
@@ -166,14 +162,11 @@ src/ASF/sam0/drivers/sercom/spi/spi.o \
 src/ASF/sam0/drivers/sercom/spi/spi_interrupt.o \
 src/SPI_control.o \
 src/SPI_slave.o \
-src/UART.o \
-src/UART_control.o \
 src/ASF/common2/services/delay/sam0/systick_counter.o \
 src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc.o \
 src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc_callback.o \
 src/ASF/sam0/drivers/extint/extint_sam_d_r_h/extint.o \
 src/ASF/sam0/drivers/sercom/sercom.o \
-src/LED_control.o \
 src/ORB_control.o \
 src/sensor_control.o \
 src/sensor.o \
@@ -189,7 +182,6 @@ src/ASF/sam0/drivers/sercom/usart/usart_interrupt.o \
 src/ASF/sam0/drivers/sercom/sercom_interrupt.o \
 src/ASF/sam0/drivers/extint/extint_callback.o \
 src/ASF/sam0/drivers/port/port.o \
-src/LED.o \
 src/ORB.o \
 src/ASF/common2/boards/user_board/init.o \
 src/ASF/common/utils/interrupt/interrupt_sam_nvic.o \
@@ -208,14 +200,11 @@ src/ASF/sam0/drivers/sercom/spi/spi.o \
 src/ASF/sam0/drivers/sercom/spi/spi_interrupt.o \
 src/SPI_control.o \
 src/SPI_slave.o \
-src/UART.o \
-src/UART_control.o \
 src/ASF/common2/services/delay/sam0/systick_counter.o \
 src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc.o \
 src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc_callback.o \
 src/ASF/sam0/drivers/extint/extint_sam_d_r_h/extint.o \
 src/ASF/sam0/drivers/sercom/sercom.o \
-src/LED_control.o \
 src/ORB_control.o \
 src/sensor_control.o \
 src/sensor.o \
@@ -231,7 +220,6 @@ src/ASF/sam0/drivers/sercom/usart/usart_interrupt.o \
 src/ASF/sam0/drivers/sercom/sercom_interrupt.o \
 src/ASF/sam0/drivers/extint/extint_callback.o \
 src/ASF/sam0/drivers/port/port.o \
-src/LED.o \
 src/ORB.o \
 src/ASF/common2/boards/user_board/init.o \
 src/ASF/common/utils/interrupt/interrupt_sam_nvic.o \
@@ -250,14 +238,11 @@ src/ASF/sam0/drivers/sercom/spi/spi.d \
 src/ASF/sam0/drivers/sercom/spi/spi_interrupt.d \
 src/SPI_control.d \
 src/SPI_slave.d \
-src/UART.d \
-src/UART_control.d \
 src/ASF/common2/services/delay/sam0/systick_counter.d \
 src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc.d \
 src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc_callback.d \
 src/ASF/sam0/drivers/extint/extint_sam_d_r_h/extint.d \
 src/ASF/sam0/drivers/sercom/sercom.d \
-src/LED_control.d \
 src/ORB_control.d \
 src/sensor_control.d \
 src/sensor.d \
@@ -273,7 +258,6 @@ src/ASF/sam0/drivers/sercom/usart/usart_interrupt.d \
 src/ASF/sam0/drivers/sercom/sercom_interrupt.d \
 src/ASF/sam0/drivers/extint/extint_callback.d \
 src/ASF/sam0/drivers/port/port.d \
-src/LED.d \
 src/ORB.d \
 src/ASF/common2/boards/user_board/init.d \
 src/ASF/common/utils/interrupt/interrupt_sam_nvic.d \
@@ -292,14 +276,11 @@ src/ASF/sam0/drivers/sercom/spi/spi.d \
 src/ASF/sam0/drivers/sercom/spi/spi_interrupt.d \
 src/SPI_control.d \
 src/SPI_slave.d \
-src/UART.d \
-src/UART_control.d \
 src/ASF/common2/services/delay/sam0/systick_counter.d \
 src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc.d \
 src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc_callback.d \
 src/ASF/sam0/drivers/extint/extint_sam_d_r_h/extint.d \
 src/ASF/sam0/drivers/sercom/sercom.d \
-src/LED_control.d \
 src/ORB_control.d \
 src/sensor_control.d \
 src/sensor.d \
@@ -315,7 +296,6 @@ src/ASF/sam0/drivers/sercom/usart/usart_interrupt.d \
 src/ASF/sam0/drivers/sercom/sercom_interrupt.d \
 src/ASF/sam0/drivers/extint/extint_callback.d \
 src/ASF/sam0/drivers/port/port.d \
-src/LED.d \
 src/ORB.d \
 src/ASF/common2/boards/user_board/init.d \
 src/ASF/common/utils/interrupt/interrupt_sam_nvic.d \
@@ -344,14 +324,6 @@ LINKER_SCRIPT_DEP+=  \
 
 
 # AVR32/GNU C Compiler
-
-
-
-
-
-
-
-
 
 
 
@@ -597,7 +569,7 @@ all: $(OUTPUT_FILE_PATH) $(ADDITIONAL_DEPENDENCIES)
 $(OUTPUT_FILE_PATH): $(OBJS) $(USER_OBJS) $(OUTPUT_FILE_DEP) $(LIB_DEP) $(LINKER_SCRIPT_DEP)
 	@echo Building target: $@
 	@echo Invoking: ARM/GNU Linker : 6.2.1
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE) -o$(OUTPUT_FILE_PATH_AS_ARGS) $(OBJS_AS_ARGS) $(USER_OBJS) $(LIBS) -mthumb -Wl,-Map="HummingBit.map" --specs=nano.specs -Wl,--start-group -larm_cortexM0l_math -lm  -Wl,--end-group -L"../src/ASF/thirdparty/CMSIS/Lib/GCC"  -Wl,--gc-sections -mcpu=cortex-m0plus -Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd10/gcc/samd10d14am_flash.ld  
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE) -o$(OUTPUT_FILE_PATH_AS_ARGS) $(OBJS_AS_ARGS) $(USER_OBJS) $(LIBS) -mthumb -Wl,-Map="HummingBit.map" --specs=nano.specs -Wl,--start-group -larm_cortexM0l_math -lm  -Wl,--end-group -L"../src/ASF/thirdparty/CMSIS/Lib/GCC"  -Wl,--gc-sections -mcpu=cortex-m0plus -Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd10/gcc/samd10d14am_flash.ld -Wl,--section-start=.text=0x800  
 	@echo Finished building target: $@
 	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-objcopy.exe" -O binary "HummingBit.elf" "HummingBit.bin"
 	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-objcopy.exe" -O ihex -R .eeprom -R .fuse -R .lock -R .signature  "HummingBit.elf" "HummingBit.hex"

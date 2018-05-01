@@ -9,6 +9,16 @@
 #include "SPI_slave.h"
 
 
+volatile uint8_t ring_buffer[200];
+volatile uint8_t tail_pointer=0;
+volatile uint8_t head_pointer=0;
+extern volatile uint8_t serial_timeout_count;
+extern volatile bool spi_reset_1 ;
+
+#define LENGTH_SET_ALL 13
+#define LENGTH_SINGLE   4
+
+
 void configure_spi_slave(void)
 {
 	struct spi_config config_spi_slave;
@@ -26,14 +36,82 @@ void configure_spi_slave(void)
 	config_spi_slave.pinmux_pad3 = SPI_SLAVE_PINMUX_PAD3;
 	spi_init(&spi_slave_instance,  SLAVE_SPI_MODULE, &config_spi_slave);
 	spi_enable(&spi_slave_instance);
+	
 }
+
+
+
+void check_buffer()
+{
+	uint8_t i =0;
+	if(tail_pointer == head_pointer)
+	{
+		transfer_complete_spi_slave = false;
+		tail_pointer = 0;
+		head_pointer = 0;
+	}
+	else
+	{
+		//Transfer receive
+		if(ring_buffer[tail_pointer] == 0xCA )
+		{	
+			for(i=0; i<LENGTH_SET_ALL;i++)
+			{
+				temp_receive[i] = ring_buffer[tail_pointer];
+				tail_pointer++;
+			}
+		}
+		else
+		{
+			for(i=0; i<LENGTH_SINGLE;i++)
+			{
+				temp_receive[i] = ring_buffer[tail_pointer];
+				tail_pointer++;
+			}
+		}
+	}
+
+}
+
 
 static void spi_slave_callback(struct spi_module *const module)
 {
+	uint8_t i = 0;
 	transfer_complete_spi_slave = true;
-	//port_pin_set_output_level(PIN_PA27, false);
-	//spi_transceive_buffer_job(&spi_slave_instance, transmit_value, received_value,SPI_LENGTH);
+	serial_timeout_count = 0;
+	if(spi_reset_1 == true )
+	{
+		spi_reset_1 = false;
+		spi_reset(&spi_slave_instance);
+		spi_slave_init();
+		spi_transceive_buffer_job(&spi_slave_instance, sensor_outputs, received_value,SPI_LENGTH);
+	}
+	else
+	{
+		if(received_value[0] == 0xCA)
+		{
+			for(i=0; i<LENGTH_SET_ALL;i++)
+			{
+				ring_buffer[head_pointer] = received_value[i];
+				head_pointer++;
+			}
+		}
+
+		else
+		{
+			for(i=0 ; i<LENGTH_SINGLE;i++)
+			{
+				ring_buffer[head_pointer] = received_value[i];
+				head_pointer++;
+			}
+		}
+		flash_status_LED = false;
+		spi_transceive_buffer_job(&spi_slave_instance, sensor_outputs, received_value,SPI_LENGTH);
+	}
+	
 }
+
+
 
 void configure_spi_slave_callbacks(void)
 {
@@ -46,12 +124,9 @@ void spi_slave_init()
 	volatile enum status_code error_code = 0x10;
 	configure_spi_slave();
 	configure_spi_slave_callbacks();
-	cpu_irq_disable();
 	do
 	{
-	error_code = spi_transceive_buffer_job(&spi_slave_instance, sensor_outputs, received_value,SPI_LENGTH);
+		error_code = spi_transceive_buffer_job(&spi_slave_instance, sensor_outputs, received_value,SPI_LENGTH);
 	} while (error_code != STATUS_OK );
-	cpu_irq_enable();
-	//delay_cycles_ms(2000);
 }
 

@@ -134,10 +134,9 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  ../src/ASF/sam0/drivers/tc/tc.h ../src/ASF/sam0/drivers/tcc/tcc.h \
  ../src/ASF/sam0/drivers/tcc/tcc_callback.h \
  ../src/ASF/sam0/drivers/tcc/tcc.h ../src/pinout.h ../src/ORB.h \
- ../src/LED.h ../src/LED_control.h ../src/super_servo.h \
- ../src/sensor_control.h ../src/sensor.h ../src/test.h \
- ../src/UART_control.h ../src/UART.h ../src/SPI_slave.h \
- ../src/SPI_control.h
+ ../src/super_servo.h ../src/sensor_control.h ../src/sensor.h \
+ ../src/test.h ../src/SPI_slave.h ../src/SPI_control.h \
+ ../src/ORB_control.h
 
 ../src/asf.h:
 
@@ -425,10 +424,6 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ORB.h:
 
-../src/LED.h:
-
-../src/LED_control.h:
-
 ../src/super_servo.h:
 
 ../src/sensor_control.h:
@@ -437,10 +432,8 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/test.h:
 
-../src/UART_control.h:
-
-../src/UART.h:
-
 ../src/SPI_slave.h:
 
 ../src/SPI_control.h:
+
+../src/ORB_control.h:

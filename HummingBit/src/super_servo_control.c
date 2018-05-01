@@ -7,6 +7,12 @@
 #include <asf.h>
 #include "super_servo_control.h"
 #include "super_servo.h"
+#define SERVO_OFF_VALUE 0xFF
+
+void switch_off_servos()
+{
+	update_super_servo(SERVO_OFF_VALUE,SERVO_OFF_VALUE,SERVO_OFF_VALUE,SERVO_OFF_VALUE);
+}
 
 void update_super_servo(uint8_t servo1 , uint8_t servo2 , uint8_t servo3, uint8_t servo4)
 {

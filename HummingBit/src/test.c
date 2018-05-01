@@ -10,7 +10,6 @@
 #define TEST_H_
 
 #include <asf.h>
-#include "LED_control.h"
 #include "ORB_control.h"
 #include "super_servo_control.h"
 #include "test.h"
@@ -19,6 +18,10 @@
 
 void test_ORB(){
 	int i =0;
+	update_ORB_single(0x31,0,255,0);
+	delay_cycles_ms(100);
+	update_ORB_single(0x32,0,255,0);
+	delay_cycles_ms(100);
 	/*
 	//LEDS
 	update_LEDS_single(0x31,250);
@@ -56,6 +59,7 @@ void test_ORB(){
 	*/
 
 	//
+	/*
 	for(i=0;i<=254;i++)
 	{
 		update_LEDS_single(0x31,i);
@@ -70,6 +74,7 @@ void test_ORB(){
 		update_ORB_single(0x32,i,0,0);
 		delay_cycles_ms(20);
 	}
+	*/
 	/*
 	for(i=0;i<=254;i++)
 	{

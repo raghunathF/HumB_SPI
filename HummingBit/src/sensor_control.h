@@ -2,7 +2,7 @@
  * sensor_control.h
  *
  * Created: 12/7/2017 3:33:47 PM
- *  Author: Raghunath 
+ * Author:  Raghunath Jangam
  */ 
 
 
@@ -12,7 +12,7 @@
 extern uint8_t* global_sensor_value;
 void read_all_sensors();
 uint8_t read_sensor(uint8_t sensor_no);
-extern volatile uint8_t sensor_outputs[4];
+extern volatile uint8_t sensor_outputs[20];
 
 #define SENSOR1_AI  6
 #define SENSOR2_AI  9

@@ -122,4 +122,7 @@
 #include <tcc_callback.h>
 
 #include "pinout.h"
+
+#define APP
+
 #endif // ASF_H

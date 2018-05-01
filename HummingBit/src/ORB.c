@@ -10,76 +10,78 @@
 
 struct tc_module orb_tc_instance;
 
-#define NO_OF_LEDS 6
+#define NO_OF_LEDS 8
+extern volatile uint8_t temp_compare_array_2[NO_OF_LEDS];
+extern volatile uint8_t temp_compare_array[NO_OF_LEDS];
 
-uint8_t compare_array[NO_OF_LEDS];
-uint8_t compare_array_ID;
+extern volatile  uint8_t temp_pin_array[NO_OF_LEDS]; 
+extern volatile  uint8_t temp_pin_array_2[NO_OF_LEDS]; 
 
-uint8_t pin_array[NO_OF_LEDS];
-uint8_t pin_array_ID;
+extern volatile  bool update_compare_array;  //Should be declared in Main.c
 
-uint8_t temp_compare_array_2[NO_OF_LEDS];
-uint8_t temp_compare_array[NO_OF_LEDS];
-uint8_t temp_pin_array[NO_OF_LEDS];
+extern volatile bool lock_temp_array;
+uint8_t test_compare_array[] = {2,3,4,5,6,7,8,9};
+volatile uint8_t  k =0;
 
-bool update_compare_array = false;
+#define PORT_CLEAR_REGISTER_ADD     0x41004414UL
+#define PORT_SET_REGISTER_ADD		0x41004418UL
 
-static uint8_t N_valid_compares = NO_OF_LEDS;
-
-#define CLEAR_ORB 0x08038300 //15,16,17,8,9,27
+#define CLEAR_ORB_LEDS	            0xC8038300UL //15,16,17,8,9,27,31,30
 
 
 void increasing_sort_tag()
 {
+	volatile uint32_t* const  PORT_SET		      = PORT_SET_REGISTER_ADD;
+	volatile uint32_t* const PORT_CLEAR			  = PORT_CLEAR_REGISTER_ADD;
+	uint32_t B2_RGB = 0x08000000;
 	uint8_t i,j ,temp;
 	uint8_t N = NO_OF_LEDS;
-	transfer_temp_2();
+	uint8_t temp_temp_compare_array[N];
+	uint8_t temp_temp_pin_array[N];
+	for(i=0;i<NO_OF_LEDS;i++)
+	{
+		temp_temp_pin_array[i] = temp_pin_array_2[i] ;
+		temp_temp_compare_array[i] = temp_compare_array_2[i] ;
+	}
 	for(i=0; i< N-1 ;i++)
 	{
 		for(j=0;j< N-i-1;j++)
 		{
-			if(temp_compare_array[j]>temp_compare_array[j+1])
+			if(temp_temp_compare_array[j]>temp_temp_compare_array[j+1])
 			{
-				temp = temp_compare_array[j];
-				temp_compare_array[j] = temp_compare_array[j+1];
-				temp_compare_array[j+1]= temp;
+				temp = temp_temp_compare_array[j];
+				temp_temp_compare_array[j] = temp_temp_compare_array[j+1];
+				temp_temp_compare_array[j+1]= temp;
 				
-				temp = temp_pin_array[j];
-				temp_pin_array[j] = temp_pin_array[j+1];
-				temp_pin_array[j+1] = temp;
-				
+				temp = temp_temp_pin_array[j];
+				temp_temp_pin_array[j]   = temp_temp_pin_array[j+1];
+				temp_temp_pin_array[j+1] = temp;
 			}
 		}
 	}
+	lock_temp_array = true;
+	for(i=0;i<N;i++)
+	{
+		
+		temp_pin_array[i]     = temp_temp_pin_array[i]  ;
+		temp_compare_array[i] = temp_temp_compare_array[i];
+	}
+	lock_temp_array = false;
 }
+
 
 void ORB_leds_off()
 {
 	//Switch off LEDs single statement
 	PortGroup *const port_base = port_get_group_from_gpio_pin(ORB_R1);
-	port_base->OUTCLR.reg = CLEAR_ORB ;
-	
+	port_base->OUTCLR.reg	   = CLEAR_ORB_LEDS;
 }
 
-void transfer_temp()
-{
-	uint8_t i;
-	N_valid_compares = 0;
-	for(i=0;i<= NO_OF_LEDS-1;i++)
-	{
-		if(temp_compare_array[i] != 255)
-		{
-			N_valid_compares++;
-		}
-		compare_array[i] = temp_compare_array[i] ;
-		pin_array[i]  = temp_pin_array[i];
-	}
-}
 
 void transfer_temp_2()
 {
 	uint8_t i;
-	for(i=0;i<=NO_OF_LEDS-1;i++)
+	for(i=0;i<NO_OF_LEDS;i++)
 	{
 		temp_compare_array[i] = temp_compare_array_2[i] ;
 	}
@@ -102,7 +104,7 @@ void ORB_timer_init()
 void set_drivestrength_ORB()
 {
 	PortGroup *const port_base = port_get_group_from_gpio_pin(ORB_R1);
-	system_pinmux_group_set_output_strength(port_base,CLEAR_ORB,SYSTEM_PINMUX_PIN_STRENGTH_HIGH);
+	system_pinmux_group_set_output_strength(port_base,CLEAR_ORB_LEDS,SYSTEM_PINMUX_PIN_STRENGTH_HIGH);
 }
 
 void ORB_setup_pins()
@@ -116,101 +118,27 @@ void ORB_setup_pins()
 	port_pin_set_config(ORB_R2, &config_port_pin);
 	port_pin_set_config(ORB_G2, &config_port_pin);
 	port_pin_set_config(ORB_B2, &config_port_pin);
+	port_pin_set_config(LED1, &config_port_pin);
+	port_pin_set_config(LED4, &config_port_pin);
 	set_drivestrength_ORB();
 	ORB_leds_off();
 	
 }
 
-void tc_callback_OF(struct tc_module *const module_inst)
-{
-	uint8_t compare_value=0;
-	static bool int_enable = false;
-	static bool led_disable_flag = false;
-	ORB_leds_off();
-	//Clear interrupts
-	//tc_clear_interrupts(&tc_instance);
-	
-	if(update_compare_array == true)
-	{
-		//tc_enable_callback(&orb_tc_instance, TC_CALLBACK_CC_CHANNEL0);
-		if(int_enable == true)
-		{
-			int_enable = false;
-			if(led_disable_flag == true)
-			{
-				tc_enable_callback(&orb_tc_instance, TC_CALLBACK_CC_CHANNEL0);
-				tc_clear_status(&orb_tc_instance,0x00000011);
-				led_disable_flag = false;
-			}
-			tc_enable_callback(&orb_tc_instance, TC_CALLBACK_CC_CHANNEL0);
-		}
-		transfer_temp();
-		update_compare_array = false;
-	}
-	compare_array_ID = 0;
-	pin_array_ID  = 0;
-	
-	compare_value = compare_array[0];
-	if(compare_value != 255)
-	{
-		led_disable_flag = true;
-		tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, compare_value);
-	}
-	else
-	{
-		int_enable = true;
-		tc_disable_callback(&orb_tc_instance, TC_CALLBACK_CC_CHANNEL0);
-	}
-	//tc_set_inital_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, 0);
-}
+
 
 void tc_callback_PWM(struct tc_module *const module_inst)
 {
-	static uint8_t compare_value=0;
-	static uint8_t compare_value_last=0;
-	static uint8_t compare_value_current=0;
-	static bool first_time = true;
+}
 
-	if(first_time == false)
-	{
-		port_pin_set_output_level(pin_array[pin_array_ID++], RGB_ON);
-		
-		if(compare_array_ID < N_valid_compares-1 )
-		{
-			compare_value_last = compare_array[compare_array_ID];
-			compare_value_current = compare_array[++compare_array_ID];
-			while(compare_value_last == compare_value_current && compare_array_ID <= N_valid_compares - 1)
-			{
-				//Enable the LED
-				port_pin_set_output_level(pin_array[pin_array_ID++],RGB_ON);
-				compare_value_last = compare_array[compare_array_ID];
-				compare_value_current = compare_array[++compare_array_ID];
-			}
-			if(compare_value_current != 255)
-			{
-				tc_set_count_value(module_inst, compare_value_last);
-				tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, compare_value_current);
-			}
-			else
-			{
-				tc_set_count_value(module_inst, compare_value_last);
-			}
-		}
-		
-		
-	}
-	else
-	{
-		first_time = false;
-		
-	}
+void tc_callback_OF(struct tc_module *const module_inst)
+{
 }
 
 void ORB_timer_callbacks_init()
 {
 	tc_register_callback(&orb_tc_instance, tc_callback_OF,TC_CALLBACK_OVERFLOW);
 	tc_register_callback(&orb_tc_instance, tc_callback_PWM,TC_CALLBACK_CC_CHANNEL0);
-	
 }
 
 void enable_ORB()
@@ -229,22 +157,28 @@ void disable_ORB()
 
 void initializing_pin_array()
 {
-	temp_pin_array[0]  = ORB_R1;
-	temp_pin_array[1]  = ORB_G1;
-	temp_pin_array[2]  = ORB_B1;
-	temp_pin_array[3]  = ORB_R2;
-	temp_pin_array[4]  = ORB_G2;
-	temp_pin_array[5]  = ORB_B2;
+	temp_pin_array_2[0]  = ORB_R1;
+	temp_pin_array_2[1]  = ORB_G1;
+	temp_pin_array_2[2]  = ORB_B1;
+	temp_pin_array_2[3]  = ORB_R2;
+	temp_pin_array_2[4]  = ORB_G2;
+	temp_pin_array_2[5]  = ORB_B2;
+	temp_pin_array_2[6]  = LED1;
+	temp_pin_array_2[7]  = LED4;
 }
 
 void initializing_compare_array()
 {
-	temp_compare_array_2[0] = 200;//Left -- R
-	temp_compare_array_2[1] = 210;//Left  -- G
-	temp_compare_array_2[2] = 220;//Left  -- B
-	temp_compare_array_2[3] = 230;//Right -- R
-	temp_compare_array_2[4] = 240;//Right  -- G
-	temp_compare_array_2[5] = 250;//Right -- B
+	temp_compare_array_2[0] = 255;//Left  -- R
+	temp_compare_array_2[1] = 255;//Left  -- G
+	temp_compare_array_2[2] = 255;//Left  -- B
+	
+	temp_compare_array_2[3] = 255;//Right -- R
+	temp_compare_array_2[4] = 255;//Right -- G
+	temp_compare_array_2[5] = 255;//Right -- B
+	
+	temp_compare_array_2[6] =  255;//LED1
+	temp_compare_array_2[7] =  255;//LED4
 }
 
 
@@ -252,9 +186,7 @@ void ORB_init_array()
 {
 	initializing_pin_array();
 	initializing_compare_array();
-	transfer_temp_2();
 	increasing_sort_tag();
-	transfer_temp();
 }
 
 void ORB_init()

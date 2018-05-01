@@ -5,11 +5,10 @@
  *  Author: raghu
  */ 
 
-
 #include <asf.h>
 #include "super_servo.h"
 
-extern volatile uint8_t sensor_outputs[4];
+extern volatile uint8_t sensor_outputs[20];
 struct tcc_module tcc_ss_instance0;
 
 void enable_super_servo()

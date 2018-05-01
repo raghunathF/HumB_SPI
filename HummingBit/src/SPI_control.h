@@ -29,6 +29,7 @@
 #define SET_ALL		   10
 
 #define STOP_ALL	   11
+#define SET_ALL_APP	   13
 
 #define MASK_RW		  0xC0
 #define MASK_MODE     0x3F
@@ -60,7 +61,7 @@ void spi_main_loop();
 extern  volatile uint8_t received_value[20];
 extern  volatile uint8_t transmit_value[20];
 
-extern volatile uint8_t sensor_outputs[4];
+extern volatile uint8_t sensor_outputs[20];
 extern volatile bool transcation_start;
 extern volatile bool serial_timeout;
 extern volatile uint8_t serial_timeout_count;

@@ -2,7 +2,7 @@
  * sensor.h
  *
  * Created: 12/7/2017 2:45:43 PM
- *  Author: raghu
+ *  Author: Raghunath Jangam
  */ 
 
 

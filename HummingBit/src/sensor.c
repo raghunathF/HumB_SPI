@@ -2,7 +2,7 @@
  * sensor.c
  *
  * Created: 12/7/2017 2:46:00 PM
- *  Author: raghu
+ *  Author: Raghunath Jangam
  */ 
 #include <asf.h>
 #include "sensor.h"
@@ -16,17 +16,14 @@ void configure_adc()
 	struct adc_config conf_adc;
 	adc_get_config_defaults(&conf_adc);
 	adc_result = malloc(sizeof(uint16_t));
-	//conf_adc.clock_source = GCLK_GENERATOR_1;
-	
+
 	conf_adc.reference			= ADC_REFCTRL_REFSEL_INTVCC0;
-	conf_adc.clock_prescaler	= ADC_CLOCK_PRESCALER_DIV4;
+	conf_adc.clock_prescaler	= ADC_CLOCK_PRESCALER_DIV16;
 	conf_adc.positive_input		= 6;
 	conf_adc.negative_input		= ADC_NEGATIVE_INPUT_GND;
 	conf_adc.resolution			= ADC_RESOLUTION_8BIT;
 	conf_adc.left_adjust		= true;
-	//conf_adc.accumulate_samples = ADC_ACCUMULATE_SAMPLES_16;
-	//conf_adc.divide_result      = ADC_DIVIDE_RESULT_16;
-	//conf_adc.freerunning        = true;
+
 	adc_init(&adc_instance, ADC, &conf_adc);
 	adc_enable(&adc_instance);
 }
@@ -39,9 +36,7 @@ uint16_t adc_start_read_result(const enum adc_positive_input analogPin)
 	
 	adc_set_positive_input(&adc_instance, analogPin );
 	adc_start_conversion(&adc_instance);
-	//port_pin_set_output_level(PIN_PA27,true);
 	while((adc_get_status(&adc_instance) & ADC_STATUS_RESULT_READY) != 1);
-	//port_pin_set_output_level(PIN_PA27,false);
 	adc_read(&adc_instance, adc_result);
 	temp = *adc_result;
 
@@ -65,7 +60,5 @@ void sensor_init()
 {
 	//Enable Analog input 
 	//Pull ADC inputs low
-	
 	configure_adc();
-	//configure_adc_inputs();
 }

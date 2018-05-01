@@ -47,6 +47,9 @@
 //#include "LED_control.h"
 #include "spi_interrupt.h"
 
+
+#define SPI_LENGTH    0x04
+
 /**
  * \internal
  *
@@ -64,23 +67,36 @@ uint16_t dummy_write;
  * \param[in]  length   Length of data buffer
  *
  */
-
 #define MASK_RW_INT				0xC0
 #define MASK_MODE_INT			0x3F
 #define READ_SPI_INT			0x80
 #define WR_SPI_INT_SET_ALL		0xCA
 #define WR_SPI_INT_RECEIVE_ALL  0xCC
-#define LENGTH_SET_ALL_COMMAND	19 
+#define LENGTH_SET_ALL_COMMAND	13 
 #define PRELOAD_LENGTH			0x02
 #define INITIAL_LENGTH			0x04
 #define DEVICE_VERSION			0x8C
 #define DEVICE_ID_HARDWARE      0x11
 #define DEVICE_ID_FIRMWARE      0x11
+#define LENGTH_SET_ALL			13
+#define LENGTH_SINGLE			 4
 
-extern volatile uint8_t sensor_outputs[4];
+extern volatile uint8_t sensor_outputs[20];
 extern volatile bool transcation_start;
 extern volatile bool serial_timeout;
 extern volatile uint8_t serial_timeout_count;
+
+/*
+extern volatile bool transfer_complete_spi_slave;
+extern volatile uint8_t received_value[20];
+extern volatile uint8_t sensor_outputs[4];
+extern volatile uint8_t transmit_value[20];
+*/
+
+//extern volatile uint8_t* ring_buffer;
+//volatile uint8_t tail_pointer=0;
+//volatile uint8_t head_pointer=0;
+
 
 static void _spi_transceive_buffer(
 		struct spi_module *const module,
@@ -106,6 +122,8 @@ static void _spi_transceive_buffer(
 	/* Enable the Data Register Empty and RX Complete Interrupt */
 	hw->INTENSET.reg = (SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY |
 			SPI_INTERRUPT_FLAG_RX_COMPLETE);
+	hw->INTFLAG.reg = (SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY |
+	SPI_INTERRUPT_FLAG_RX_COMPLETE | SPI_INTERRUPT_FLAG_COMBINED_ERROR);
 
 #  if CONF_SPI_SLAVE_ENABLE == true
 	if (module->mode == SPI_MODE_SLAVE) {
@@ -389,6 +407,7 @@ enum status_code spi_read_buffer_job(
  * \retval  STATUS_ERR_DENIED       If the receiver is not enabled
  * \retval  STATUS_ERR_INVALID_ARG  If requested read length was zero
  */
+
 enum status_code spi_transceive_buffer_job(
 		struct spi_module *const module,
 		uint8_t *tx_data,
@@ -398,23 +417,25 @@ enum status_code spi_transceive_buffer_job(
 	/* Sanity check arguments */
 	Assert(module);
 	Assert(rx_data);
-
+	
 	if (length == 0) {
 		return STATUS_ERR_INVALID_ARG;
 	}
-
+	
 	if (!(module->receiver_enabled)) {
 		return STATUS_ERR_DENIED;
 	}
-
+	
+	//port_pin_set_output_level(PIN_PA27, true);
 	/* Check if the SPI is busy transmitting or slave waiting for TXC*/
 	if (module->status == STATUS_BUSY) {
 		return STATUS_BUSY;
 	}
 
+
 	/* Issue internal transceive */
 	_spi_transceive_buffer(module, tx_data, rx_data, length);
-
+	
 	return STATUS_OK;
 }
 /**
@@ -453,8 +474,7 @@ void spi_abort_job(
  *
  * \param[in,out]  module  Pointer to SPI software instance struct
  */
-static void _spi_write(
-		struct spi_module *const module)
+static void _spi_write( struct spi_module *const module)
 {
 	/* Pointer to the hardware module instance */
 	SercomSpi *const spi_hw = &(module->hw->SPI);
@@ -587,165 +607,83 @@ static void _spi_read(
  * \param[in]  instance  ID of the SERCOM instance calling the interrupt
  *                       handler.
  */
+#define PORT_CLEAR_REGISTER_ADD     0x41004414UL
+#define PORT_SET_REGISTER_ADD		0x41004418UL
+
+extern volatile bool spi_reset_1 ;
 
 
-void _spi_interrupt_handler(
-		uint8_t instance)
+void _spi_interrupt_handler(uint8_t instance)
 {
 	static uint8_t buffer_length    = 0;
 	static uint8_t buffer_length_wr = 0;
+	uint16_t data_to_send  = 0;
+	uint16_t received_data = 0;
+	uint8_t i = 0;
+	volatile uint32_t* const PORT_SET		      = PORT_SET_REGISTER_ADD;
+	volatile uint32_t* const PORT_CLEAR		      = PORT_CLEAR_REGISTER_ADD;
+	uint32_t B2_RGB = 0x08000000;
+	uint32_t G2_RGB = 0x00000200;
+	
+	
+	//*PORT_SET	=  G2_RGB;
 	
 	/* Get device instance from the look-up table */
-	struct spi_module *module
-		= (struct spi_module *)_sercom_instances[instance];
+	struct spi_module *module = (struct spi_module *)_sercom_instances[instance];
 
 	/* Pointer to the hardware module instance */
 	SercomSpi *const spi_hw = &(module->hw->SPI);
 
 	/* Combine callback registered and enabled masks. */
-	uint8_t callback_mask =
-			module->enabled_callback & module->registered_callback;
+	uint8_t callback_mask = module->enabled_callback & module->registered_callback;
 
 	/* Read and mask interrupt flag register */
 	uint16_t interrupt_status = spi_hw->INTFLAG.reg;
 	interrupt_status &= spi_hw->INTENSET.reg;
 	
-	
 	/* Data register empty interrupt */ 
-	if (interrupt_status & SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY) {
-#  if CONF_SPI_MASTER_ENABLE == true
-		if ((module->mode == SPI_MODE_MASTER) &&
-			(module->dir == SPI_DIRECTION_READ)) {
-			
-			/* Send dummy byte when reading in master mode */
-			_spi_write_dummy(module);
-			
-			if (module->remaining_dummy_buffer_length == 0) {
-				/* Disable the Data Register Empty Interrupt */
-				spi_hw->INTENCLR.reg
-						= SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY;
-			}
-		}
-#  endif
-
-		if (0
-#  if CONF_SPI_MASTER_ENABLE == true
-		|| ((module->mode == SPI_MODE_MASTER) &&
-			(module->dir != SPI_DIRECTION_READ))
-#  endif
-#  if CONF_SPI_SLAVE_ENABLE == true
-		|| ((module->mode == SPI_MODE_SLAVE) &&
-			(module->dir != SPI_DIRECTION_READ))
-#  endif
-		) {
-			
-			/*
-			if(*(module->tx_buffer_ptr) == 0x88)
-			{
-				port_pin_set_output_level(PIN_PA09, false);
-				delay_cycles_us(3);
-				port_pin_set_output_level(PIN_PA09,true);
-			}
-			*/
-			
-			
-			_spi_write(module);
-			
-			
-			
-			
-			/* Write next byte from buffer */
-			
-			
-			/*
-			buffer_length_wr++;
-			if(buffer_length_wr != 1)
-			{
-				_spi_write(module);
-				port_pin_set_output_level(PIN_PA09, false);
-				delay_cycles_us(3);
-				port_pin_set_output_level(PIN_PA09,true);
-			}
-			*/
-			//port_pin_toggle_output_level(PIN_PA08, false);
-			//delay_cycles_us(3);
-			//port_pin_set_output_level(PIN_PA08,true);
-			
-		     //spi_hw->DATA.reg = sensor_outputs[0] & SERCOM_SPI_DATA_MASK;
+	if (interrupt_status & SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY) 
+	{
+		if((module->mode == SPI_MODE_SLAVE) &&(module->dir != SPI_DIRECTION_READ))
+		 {
+			//_spi_write(module);
+			//*PORT_SET	=  B2_RGB;
+			data_to_send = *(module->tx_buffer_ptr);
+			(module->tx_buffer_ptr)++;
+			spi_hw->DATA.reg = data_to_send & SERCOM_SPI_DATA_MASK;
+			(module->remaining_tx_buffer_length)--;
+		
 			if (module->remaining_tx_buffer_length == 0) 
 			{
-				
-				/*
-				port_pin_set_output_level(PIN_PA09, false);
-				delay_cycles_us(3);
-				port_pin_set_output_level(PIN_PA09,true);
-				*/
-				
-				
 				/* Disable the Data Register Empty Interrupt */
-				
-				spi_hw->INTENCLR.reg
-						= SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY;
-
-				if (module->dir == SPI_DIRECTION_WRITE &&
-						!(module->receiver_enabled)) {
-					/* Enable the Data Register transmit complete Interrupt */
-					spi_hw->INTENSET.reg = SPI_INTERRUPT_FLAG_TX_COMPLETE;
-				}
+				spi_hw->INTENCLR.reg = SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY;
 			}
+			//*PORT_CLEAR	=  B2_RGB;
 		}
 	}
 
 	/* Receive complete interrupt*/
 	if (interrupt_status & SPI_INTERRUPT_FLAG_RX_COMPLETE) {
 		/* Check for overflow */
-		if (spi_hw->STATUS.reg & SERCOM_SPI_STATUS_BUFOVF) {
-			if (module->dir != SPI_DIRECTION_WRITE) {
-				/* Store the error code */
-				module->status = STATUS_ERR_OVERFLOW;
-
-				/* End transaction */
-				module->dir = SPI_DIRECTION_IDLE;
-				
-				spi_hw->INTENCLR.reg = SPI_INTERRUPT_FLAG_RX_COMPLETE |
-						SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY;
-				/* Run callback if registered and enabled */
-				if (callback_mask & (1 << SPI_CALLBACK_ERROR)) {
-					(module->callback[SPI_CALLBACK_ERROR])(module);
-				}
-			}
+		//*PORT_SET	=  B2_RGB;
+		if (spi_hw->STATUS.reg & SERCOM_SPI_STATUS_BUFOVF) 
+		{
 			/* Flush */
 			uint16_t flush = spi_hw->DATA.reg;
 			UNUSED(flush);
 			/* Clear overflow flag */
 			spi_hw->STATUS.reg = SERCOM_SPI_STATUS_BUFOVF;
-		} else {
-			if (module->dir == SPI_DIRECTION_WRITE) {
-				/* Flush receive buffer when writing */
-				_spi_read_dummy(module);
-				if (module->remaining_dummy_buffer_length == 0) {
-					spi_hw->INTENCLR.reg = SPI_INTERRUPT_FLAG_RX_COMPLETE;
-					module->status = STATUS_OK;
-					module->dir = SPI_DIRECTION_IDLE;
-					/* Run callback if registered and enabled */
-					if (callback_mask &
-							(1 << SPI_CALLBACK_BUFFER_TRANSMITTED)){
-						(module->callback[SPI_CALLBACK_BUFFER_TRANSMITTED])(module);
-					}
-				}
-			} else {
-				
+		} 
+		else 
+		{
+			
 				/* Read data register */
-				/*
-				port_pin_set_output_level(PIN_PA08, false);
-				delay_cycles_us(3);
-				port_pin_set_output_level(PIN_PA08,true);
-				*/
+				//_spi_read(module);
 				
-				_spi_read(module);
-				//port_pin_set_output_level(PIN_PA09, false);
-				//delay_cycles_us(3);
-				//port_pin_set_output_level(PIN_PA09,true);
+				received_data = (spi_hw->DATA.reg & SERCOM_SPI_DATA_MASK);
+				*(module->rx_buffer_ptr) = received_data;
+				module->rx_buffer_ptr += 1;
+				module->remaining_rx_buffer_length--;
 				
 				buffer_length++;
 				if(buffer_length == 1)
@@ -756,53 +694,45 @@ void _spi_interrupt_handler(
 					//Check if the command is set all 
 					if ((*(module->rx_buffer_ptr-1) == WR_SPI_INT_SET_ALL || *(module->rx_buffer_ptr-1) == WR_SPI_INT_RECEIVE_ALL)) 
 					{
+						//*PORT_SET	=  G2_RGB;
 						module->remaining_tx_buffer_length =  LENGTH_SET_ALL_COMMAND - (INITIAL_LENGTH - module->remaining_tx_buffer_length);
 						module->remaining_rx_buffer_length =  LENGTH_SET_ALL_COMMAND - (INITIAL_LENGTH - module->remaining_rx_buffer_length);
-						/*
-						//*(module->tx_buffer_ptr) = sensor_outputs[*(module->rx_buffer_ptr-1)&MASK_MODE_INT];
-						 //spi_hw->DATA.reg = sensor_outputs[0] & SERCOM_SPI_DATA_MASK;
-						 //*(module->tx_buffer_ptr) = sensor_outputs[0] & SERCOM_SPI_DATA_MASK;
-						 _spi_write_2(module);
-						 port_pin_set_output_level(PIN_PA08, false);
-						 delay_cycles_us(3);
-						 port_pin_set_output_level(PIN_PA08,true);
-						 */
+						//*PORT_CLEAR	=  G2_RGB;
 					}
 					else if(*(module->rx_buffer_ptr-1) == DEVICE_VERSION)
 					{
 						*(module->tx_buffer_ptr)      =	DEVICE_ID_HARDWARE ;	
 						*(module->tx_buffer_ptr + 1)  = DEVICE_ID_FIRMWARE ;
 					}
+					
 				}
 				
-			    /*
-				port_pin_set_output_level(PIN_PA08, false);
-				delay_cycles_us(3);
-				port_pin_set_output_level(PIN_PA08,true);
-				*/
-				
-				
 				/* Check if the last character have been received */
-				if (module->remaining_rx_buffer_length == 0) {
-					
-					//port_pin_set_output_level(PIN_PA08, false);
-					
+				if (module->remaining_rx_buffer_length == 0) 
+				{	
+					//*PORT_SET	=  G2_RGB;
+					buffer_length = 0;
+					transcation_start = false;
+					serial_timeout = false;
+					serial_timeout_count = 0 ;
 					module->status = STATUS_OK;
 					/* Disable RX Complete Interrupt and set status */
 					spi_hw->INTENCLR.reg = SPI_INTERRUPT_FLAG_RX_COMPLETE;
 					if(module->dir == SPI_DIRECTION_BOTH) {
 						if (callback_mask & (1 << SPI_CALLBACK_BUFFER_TRANSCEIVED)) {
 							(module->callback[SPI_CALLBACK_BUFFER_TRANSCEIVED])(module);
+							
 						}
+						
 					} else if (module->dir == SPI_DIRECTION_READ) {
 						if (callback_mask & (1 << SPI_CALLBACK_BUFFER_RECEIVED)) {
 							(module->callback[SPI_CALLBACK_BUFFER_RECEIVED])(module);
 						}
 					}
-					//port_pin_set_output_level(PIN_PA08,true);
+					//*PORT_CLEAR	=  G2_RGB;
 				}
 			}
-		}
+			//*PORT_CLEAR	=  B2_RGB;
 	}
 
 	/* Transmit complete */
@@ -810,64 +740,28 @@ void _spi_interrupt_handler(
 #  if CONF_SPI_SLAVE_ENABLE == true
 		if (module->mode == SPI_MODE_SLAVE) {
 			
-			
-			/* Transaction ended by master */
-			/* Disable interrupts */
-			
-			
-			
-			/*
-			spi_hw->INTENCLR.reg =
-					SPI_INTERRUPT_FLAG_TX_COMPLETE |
-					SPI_INTERRUPT_FLAG_RX_COMPLETE |
-					SPI_INTERRUPT_FLAG_DATA_REGISTER_EMPTY;
-			*/
-			/* Clear interrupt flag */
-			buffer_length = 0;
-			spi_hw->INTFLAG.reg = SPI_INTERRUPT_FLAG_TX_COMPLETE;
-			//buffer_length = 0;
-			//buffer_length_wr = 0;
-			//update_LEDS_single(0x33,0x55);
-			
-			/* Reset all status information */
-			/*
-			module->dir = SPI_DIRECTION_IDLE;
-			module->remaining_tx_buffer_length = 0;
-			module->remaining_rx_buffer_length = 0;
-			module->status = STATUS_OK;
-
-			if (callback_mask &
-					(1 << SPI_CALLBACK_SLAVE_TRANSMISSION_COMPLETE)) {
-			(module->callback[SPI_CALLBACK_SLAVE_TRANSMISSION_COMPLETE])
-					(module);
+			spi_reset_1 = true;
+			if(module->dir == SPI_DIRECTION_BOTH) {
+				if (callback_mask & (1 << SPI_CALLBACK_BUFFER_TRANSCEIVED)) {
+					(module->callback[SPI_CALLBACK_BUFFER_TRANSCEIVED])(module);
+					
+				}
 			}
-			*/
-
+			//*PORT_SET	=  B2_RGB;
+			spi_hw->INTFLAG.reg = SPI_INTERRUPT_FLAG_TX_COMPLETE;
+			//*PORT_CLEAR	=  B2_RGB;
 		}
 #  endif
-#  if CONF_SPI_MASTER_ENABLE == true
-		if ((module->mode == SPI_MODE_MASTER) &&
-			(module->dir == SPI_DIRECTION_WRITE) && !(module->receiver_enabled)) {
-		  	/* Clear interrupt flag */
-		 	spi_hw->INTENCLR.reg
-					= SPI_INTERRUPT_FLAG_TX_COMPLETE;
-			/* Buffer sent with receiver disabled */
-			module->dir    = SPI_DIRECTION_IDLE;
-			module->status = STATUS_OK;
-			/* Run callback if registered and enabled */
-			if (callback_mask & (1 << SPI_CALLBACK_BUFFER_TRANSMITTED)){
-				(module->callback[SPI_CALLBACK_BUFFER_TRANSMITTED])
-						(module);
-			}
-		}
-#endif
+
 	}
 
 #  ifdef FEATURE_SPI_SLAVE_SELECT_LOW_DETECT
 #  if CONF_SPI_SLAVE_ENABLE == true
+        
 		/* When a high to low transition is detected on the _SS pin in slave mode */
 		if (interrupt_status & SPI_INTERRUPT_FLAG_SLAVE_SELECT_LOW) {
 			if (module->mode == SPI_MODE_SLAVE) {
+				//*PORT_SET	=  B2_RGB;
 				/* Disable interrupts */
 				spi_hw->INTENCLR.reg = SPI_INTERRUPT_FLAG_SLAVE_SELECT_LOW;
 				/* Clear interrupt flag */
@@ -876,14 +770,17 @@ void _spi_interrupt_handler(
 				if (callback_mask & (1 << SPI_CALLBACK_SLAVE_SELECT_LOW)) {
 					(module->callback[SPI_CALLBACK_SLAVE_SELECT_LOW])(module);
 				}
+				//*PORT_CLEAR	=  B2_RGB;
 			}
 		}
+		
 #  endif
 #  endif
 
 #  ifdef FEATURE_SPI_ERROR_INTERRUPT
 	/* When combined error happen */
 	if (interrupt_status & SPI_INTERRUPT_FLAG_COMBINED_ERROR) {
+		//*PORT_SET	=  B2_RGB;
 		/* Disable interrupts */
 		spi_hw->INTENCLR.reg = SPI_INTERRUPT_FLAG_COMBINED_ERROR;
 		/* Clear interrupt flag */
@@ -892,7 +789,10 @@ void _spi_interrupt_handler(
 		if (callback_mask & (1 << SPI_CALLBACK_COMBINED_ERROR)) {
 			(module->callback[SPI_CALLBACK_COMBINED_ERROR])(module);
 		}
-		//update_LEDS_single(0x33,0x55);
+		//*PORT_CLEAR	=  B2_RGB;
 	}
 #  endif
+	
+	//*PORT_CLEAR	=  G2_RGB;
+  
 }

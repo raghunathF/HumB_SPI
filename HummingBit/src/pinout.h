@@ -2,7 +2,7 @@
  * pinout.h
  *
  * Created: 12/6/2017 10:52:22 AM
- *  Author: raghu
+ *  Author: Raghunath Jangam
  */ 
 
 

@@ -2,7 +2,7 @@
  * CFile1.c
  *
  * Created: 12/7/2017 3:33:13 PM
- *  Author: raghu
+ *  Author:  Raghunath Jangam
  */ 
 #include <asf.h>
 #include "sensor_control.h"
@@ -28,21 +28,9 @@ void read_all_sensors()
 	uint8_t i =0;
 	for(i= 0; i< NO_SENSORS; i++)
 	{
-		//port_pin_set_output_level(PIN_PA27,true);
 		temp_sensor_outputs[i] = adc_start_read_result(sensor_analog_inputs[i]);
-		//port_pin_set_output_level(PIN_PA27,false);
 		sensor_outputs[i]      = temp_sensor_outputs[i] ;
 	}
-	/* Debug
-	if(test_count > 490)
-	{
-		test_count = 0;
-	}
 	
-	sensor_output_temp[test_count] = sensor_outputs[0];
-	test_count++;
-	*/
-	//global_sensor_value = &output_multiple_adc;
-	//return output_multiple_adc;
 }
 

@@ -25,7 +25,7 @@
     <preserveEEPROM>true</preserveEEPROM>
     <OverrideVtorValue>exception_table</OverrideVtorValue>
     <BootSegment>2</BootSegment>
-    <eraseonlaunchrule>0</eraseonlaunchrule>
+    <eraseonlaunchrule>1</eraseonlaunchrule>
     <AsfFrameworkConfig>
       <framework-data>
         <options>
@@ -483,7 +483,7 @@
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
   <armgcc.linker.memorysettings.ExternalRAM />
-  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd10/gcc/samd10d14am_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
+  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd10/gcc/samd10d14am_flash.ld -Wl,--section-start=.text=0x800</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
       <Value>../src/ASF/common/boards</Value>
@@ -689,18 +689,6 @@
     <Compile Include="src\SPI_control.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\UART.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\UART.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\UART_control.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\UART_control.h">
-      <SubType>compile</SubType>
-    </Compile>
     <None Include="src\ASF\common2\services\delay\delay.h">
       <SubType>compile</SubType>
     </None>
@@ -720,12 +708,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\sam0\drivers\sercom\sercom.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\LED_control.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\LED_control.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ORB_control.c">
@@ -875,12 +857,6 @@
     <None Include="src\ASF\sam0\drivers\port\quick_start\qs_port_basic.h">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="src\LED.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\LED.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\ORB.c">
       <SubType>compile</SubType>
     </Compile>

@@ -22,7 +22,7 @@ extern volatile uint8_t serial_timeout_count;
 extern volatile uint8_t count_broadcast;
 extern volatile bool serial_timeout;
 
-#define MAX_SERIAL_TIMEOUT 30
+#define MAX_SERIAL_TIMEOUT 10
 #define LED_ON true
 #define LED_OFF false
 

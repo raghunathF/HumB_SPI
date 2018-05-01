@@ -27,12 +27,14 @@
 
 extern volatile bool transfer_complete_spi_slave;
 extern volatile uint8_t received_value[20];
-extern volatile uint8_t sensor_outputs[4];
+extern volatile uint8_t sensor_outputs[20];
 extern volatile uint8_t transmit_value[20];
+extern volatile uint8_t temp_receive[20];
 
 struct spi_module spi_slave_instance;
 
 void spi_slave_init();
+void check_buffer();
 
-
+extern volatile bool flash_status_LED; 
 #endif /* SPI_H_ */
