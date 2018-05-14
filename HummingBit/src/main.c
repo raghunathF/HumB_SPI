@@ -89,9 +89,14 @@ void microbit_connection()
 		}
 	}
 }
-
+#define PORT_CLEAR_REGISTER_ADD     0x41004414UL
+#define PORT_SET_REGISTER_ADD		0x41004418UL
 int main (void)
 {
+	uint32_t B2_RGB = 0x08000000;
+	uint32_t G2_RGB = 0x00000200;
+	volatile uint32_t* const  PORT_SET		      = PORT_SET_REGISTER_ADD;
+	volatile uint32_t* const PORT_CLEAR_REGISTER  = PORT_CLEAR_REGISTER_ADD;
 	system_init();
 	delay_init();
 	ORB_init();
@@ -99,7 +104,7 @@ int main (void)
 	sensor_init();
 	super_servo_init();
 	enable_super_servo();
-	enable_ORB();
+	//enable_ORB();
 	spi_slave_init();
 	
 	/* Insert application code here, after the board has been initialized. */
@@ -107,6 +112,10 @@ int main (void)
 	{
 		microbit_connection();
 		sensor_check();
+		//Debug point --1
+		//*PORT_SET            = B2_RGB;
 		spi_main_loop();
+		//*PORT_CLEAR_REGISTER = B2_RGB;
+		//Debug point --2
 	}
 }

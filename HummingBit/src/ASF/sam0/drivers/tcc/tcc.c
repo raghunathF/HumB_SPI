@@ -1035,16 +1035,24 @@ uint32_t tcc_get_capture_value(
  * \retval  STATUS_ERR_INVALID_ARG  An invalid channel index was supplied or
  *                                  compare value exceed resolution
  */
+
+#define PORT_CLEAR_REGISTER_ADD     0x41004414UL
+#define PORT_SET_REGISTER_ADD		0x41004418UL
 static enum status_code _tcc_set_compare_value(
 		const struct tcc_module *const module_inst,
 		const enum tcc_match_capture_channel channel_index,
 		const uint32_t compare,
 		const bool double_buffering_enabled)
 {
+	
 	/* Sanity check arguments */
 	Assert(module_inst);
 	Assert(module_inst->hw);
-
+	uint32_t B2_RGB = 0x08000000;
+	uint32_t G2_RGB = 0x00000200;
+	volatile uint32_t* const  PORT_SET		      = PORT_SET_REGISTER_ADD;
+	volatile uint32_t* const PORT_CLEAR_REGISTER  = PORT_CLEAR_REGISTER_ADD;
+	
 	/* Get a pointer to the module's hardware instance */
 	Tcc *const tcc_module = module_inst->hw;
 	/* Get a index of the module */
@@ -1066,22 +1074,33 @@ static enum status_code _tcc_set_compare_value(
 #if (SAML21) || (SAMC20) || (SAMC21) || (SAML22) || (SAMR30)
 		tcc_module->CCBUF[channel_index].reg = compare;
 #else
+		
+		/*
 		while(tcc_module->STATUS.reg  &
 				(TCC_STATUS_CCBV0 << channel_index)) {
-			/* Valid check */
+			
 		}
+		*/
+		*PORT_SET            = B2_RGB;
 		while(tcc_module->SYNCBUSY.reg  &
 				(TCC_SYNCBUSY_CCB0 << channel_index)) {
 			/* Sync wait */
 		}
+		*PORT_CLEAR_REGISTER            = B2_RGB;
 		tcc_module->CCB[channel_index].reg = compare;
+		
 #endif
 	} else {
+		
 		while(tcc_module->SYNCBUSY.reg  & (TCC_SYNCBUSY_CC0 << channel_index)) {
 			/* Sync wait */
 		}
+		
 		tcc_module->CC[channel_index].reg = compare;
+		
+	
 	}
+	
 	return STATUS_OK;
 }
 

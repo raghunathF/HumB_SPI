@@ -23,7 +23,7 @@ void read_all_sensors()
 	uint8_t temp_sensor_outputs[4];
 	uint32_t output_multiple_adc = 0;
 	static uint16_t test_count=0;
-	static volatile uint8_t sensor_output_temp[500];
+	//static volatile uint8_t sensor_output_temp[500];
 	
 	uint8_t i =0;
 	for(i= 0; i< NO_SENSORS; i++)
