@@ -287,11 +287,19 @@ void _tc_interrupt_handler(
 				int_enable = false;
 				tc_enable_callback(module, TC_CALLBACK_CC_CHANNEL0);
 				tc_clear_status(module,0x00000011);
+				/*
+				if(led_disable_flag == true)
+				{
+					
+					led_disable_flag = false;
+				}
+				tc_enable_callback(module, TC_CALLBACK_CC_CHANNEL0);
+				*/
 			}
 			
 			//transfer_temp();
-			if(lock_temp_array == false)
-			{
+			//if(lock_temp_array == false)
+			//{
 				N_valid_compares = 0;
 			
 				for(i=0;i<NO_OF_LEDS;i++)
@@ -308,7 +316,7 @@ void _tc_interrupt_handler(
 					pin_array[i]	 = temp_pin_array[i];
 				}
 				
-			}
+			//}
 			update_compare_array = false;
 			//*PORT_CLEAR_REGISTER = B2_RGB;
 		}
@@ -319,7 +327,7 @@ void _tc_interrupt_handler(
 		if(compare_value != 255)
 		{
 			
-			//led_disable_flag = true;
+			led_disable_flag = true;
 			//Check sync busy
 			while((*STATUS_REGISTER && MASK_SYNC) == true);
 			//Update the compare value

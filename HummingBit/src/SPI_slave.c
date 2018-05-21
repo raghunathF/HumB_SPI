@@ -9,11 +9,9 @@
 #include "SPI_slave.h"
 
 
-volatile uint8_t ring_buffer[500];
-volatile uint16_t tail_pointer=0;
-volatile uint16_t head_pointer=0;
-
-
+volatile uint8_t ring_buffer[200];
+volatile uint8_t tail_pointer=0;
+volatile uint8_t head_pointer=0;
 extern volatile uint8_t serial_timeout_count;
 extern volatile bool spi_reset_1 ;
 
@@ -46,40 +44,31 @@ void configure_spi_slave(void)
 void check_buffer()
 {
 	uint8_t i =0;
-	
 	if(tail_pointer == head_pointer)
 	{
 		transfer_complete_spi_slave = false;
 		tail_pointer = 0;
 		head_pointer = 0;
-	}
-	else if((head_pointer >490) || (tail_pointer > 490))
-	{
-		head_pointer = 0;
-		tail_pointer = 0;
-	}
-	//Transfer receive
-	else if(ring_buffer[tail_pointer] == 0xCA )
-	{	
-		for(i=0; i<LENGTH_SET_ALL;i++)
-		{
-			temp_receive[i] = ring_buffer[tail_pointer];
-			tail_pointer++;
-		}
 	}
 	else
 	{
-		for(i=0; i<LENGTH_SINGLE;i++)
-		{
-			temp_receive[i] = ring_buffer[tail_pointer];
-			tail_pointer++;
+		//Transfer receive
+		if(ring_buffer[tail_pointer] == 0xCA )
+		{	
+			for(i=0; i<LENGTH_SET_ALL;i++)
+			{
+				temp_receive[i] = ring_buffer[tail_pointer];
+				tail_pointer++;
+			}
 		}
-	}
-	if(tail_pointer == head_pointer)
-	{
-		transfer_complete_spi_slave = false;
-		tail_pointer = 0;
-		head_pointer = 0;
+		else
+		{
+			for(i=0; i<LENGTH_SINGLE;i++)
+			{
+				temp_receive[i] = ring_buffer[tail_pointer];
+				tail_pointer++;
+			}
+		}
 	}
 
 }
@@ -90,7 +79,6 @@ static void spi_slave_callback(struct spi_module *const module)
 	uint8_t i = 0;
 	transfer_complete_spi_slave = true;
 	serial_timeout_count = 0;
-	volatile uint8_t k =0;
 	if(spi_reset_1 == true )
 	{
 		spi_reset_1 = false;
@@ -117,7 +105,6 @@ static void spi_slave_callback(struct spi_module *const module)
 				head_pointer++;
 			}
 		}
-		
 		flash_status_LED = false;
 		spi_transceive_buffer_job(&spi_slave_instance, sensor_outputs, received_value,SPI_LENGTH);
 	}

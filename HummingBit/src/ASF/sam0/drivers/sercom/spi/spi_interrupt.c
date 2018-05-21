@@ -624,9 +624,7 @@ void _spi_interrupt_handler(uint8_t instance)
 	volatile uint32_t* const PORT_CLEAR		      = PORT_CLEAR_REGISTER_ADD;
 	uint32_t B2_RGB = 0x08000000;
 	uint32_t G2_RGB = 0x00000200;
-	//volatile uint8_t k = 0;
-	//volatile uint8_t first_byte[100];
-	//static uint16_t count_first =0; 
+	
 	
 	//*PORT_SET	=  G2_RGB;
 	
@@ -707,30 +705,12 @@ void _spi_interrupt_handler(uint8_t instance)
 						*(module->tx_buffer_ptr + 1)  = DEVICE_ID_FIRMWARE ;
 					}
 					
-					/*
-					if(*(module->rx_buffer_ptr-1) == 0xC8)
-					{
-						first_byte[count_first]                      = *(module->rx_buffer_ptr-1);
-						count_first++;
-					}
-					if(count_first == 10)
-					{
-						count_first = 0;
-					}
-					*/
-					
 				}
 				
 				/* Check if the last character have been received */
 				if (module->remaining_rx_buffer_length == 0) 
 				{	
 					//*PORT_SET	=  G2_RGB;
-					/*
-					if(count_first == 1)
-					{
-						count_first = 0;
-					}
-					*/
 					buffer_length = 0;
 					transcation_start = false;
 					serial_timeout = false;
@@ -749,7 +729,6 @@ void _spi_interrupt_handler(uint8_t instance)
 							(module->callback[SPI_CALLBACK_BUFFER_RECEIVED])(module);
 						}
 					}
-					
 					//*PORT_CLEAR	=  G2_RGB;
 				}
 			}
@@ -761,7 +740,6 @@ void _spi_interrupt_handler(uint8_t instance)
 #  if CONF_SPI_SLAVE_ENABLE == true
 		if (module->mode == SPI_MODE_SLAVE) {
 			
-			
 			spi_reset_1 = true;
 			if(module->dir == SPI_DIRECTION_BOTH) {
 				if (callback_mask & (1 << SPI_CALLBACK_BUFFER_TRANSCEIVED)) {
@@ -769,8 +747,6 @@ void _spi_interrupt_handler(uint8_t instance)
 					
 				}
 			}
-			
-			
 			//*PORT_SET	=  B2_RGB;
 			spi_hw->INTFLAG.reg = SPI_INTERRUPT_FLAG_TX_COMPLETE;
 			//*PORT_CLEAR	=  B2_RGB;

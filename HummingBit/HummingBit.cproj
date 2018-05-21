@@ -239,17 +239,6 @@
       <ToolName>J-Link</ToolName>
     </com_atmel_avrdbg_tool_samice>
     <avrtoolinterfaceclock>4000000</avrtoolinterfaceclock>
-    <custom>
-      <ToolOptions xmlns="">
-        <InterfaceProperties>
-        </InterfaceProperties>
-        <InterfaceName>SWD</InterfaceName>
-      </ToolOptions>
-      <ToolType xmlns="">custom</ToolType>
-      <ToolNumber xmlns="">
-      </ToolNumber>
-      <ToolName xmlns="">Custom Programming Tool</ToolName>
-    </custom>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
